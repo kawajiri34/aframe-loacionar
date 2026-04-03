@@ -1,0 +1,10 @@
+[
+  {
+    "id": "spot-1",
+    "name": "目的地",
+    "lat": 43.064764,
+    "lng": 141.361568,
+    "model": "assets/models/car.glb",
+    "description": "札幌"
+  }
+]

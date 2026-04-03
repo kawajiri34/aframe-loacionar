@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR ナビゲーション</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
+    <script
+      type="text/javascript"
+      src="https://raw.githack.com/AFrame-Extras/dist/master/dist/aframe-extras.loaders.min.js"
+    ></script>
+    <script src="https://unpkg.com/ar.js@3.4.5/aframe/build/aframe-ar.js"></script>
+    <script src="js/components.js"></script>
+  </head>
+  <body>
+    <!-- ローディング画面 -->
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>読み込み中...</p>
+    </div>
+
+    <!-- スポット選択画面 -->
+    <div id="spot-select" style="display: none">
+      <h2>目的地を選択</h2>
+      <div class="spot-list"></div>
+    </div>
+
+    <!-- 情報オーバーレイ -->
+    <div id="overlay" style="display: none">
+      <span id="spot-name" class="spot-name"></span>
+      <span id="distance" class="distance">--</span>
+    </div>
+
+    <!-- A-Frame ARシーン -->
+    <a-scene
+      vr-mode-ui="enabled: false"
+      arjs="sourceType: webcam; debugUIEnabled: false;"
+      renderer="antialias: true; alpha: true"
+      embedded
+    >
+      <a-camera gps-projected-camera rotation-reader></a-camera>
+    </a-scene>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
