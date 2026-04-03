@@ -4,6 +4,20 @@
   box-sizing: border-box;
 }
 
+body {
+  background: transparent;
+}
+
+.a-scene-container,
+.a-canvas {
+  background: transparent !important;
+}
+
+/* AR.jsのビデオ要素を明るく表示 */
+#arjs-video {
+  filter: brightness(1.2) !important;
+}
+
 #overlay {
   position: fixed;
   top: 0;
