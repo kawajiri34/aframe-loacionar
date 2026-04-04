@@ -35,7 +35,7 @@ AFRAME.registerComponent('nav-arrow', {
     cone.setAttribute('height', '3');
     cone.setAttribute('radius-bottom', '1.5');
     cone.setAttribute('radius-top', '0');
-    cone.setAttribute('position', '0 5 -3');
+    cone.setAttribute('position', '0 3 -3');
     cone.setAttribute('rotation', '-90 0 0');
 
     // 軸（シリンダー）
@@ -43,7 +43,7 @@ AFRAME.registerComponent('nav-arrow', {
     shaft.setAttribute('color', color);
     shaft.setAttribute('height', '4');
     shaft.setAttribute('radius', '0.7');
-    shaft.setAttribute('position', '0 5 1');
+    shaft.setAttribute('position', '0 3 1');
     shaft.setAttribute('rotation', '-90 0 0');
 
     arrowGroup.appendChild(cone);
