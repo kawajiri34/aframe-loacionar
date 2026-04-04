@@ -43,19 +43,8 @@
     </a-scene>
 
     <script>
-      // シーン初期化後にレンダラーの背景を完全透明にする
       document.querySelector('a-scene').addEventListener('loaded', function () {
-        var renderer = this.renderer;
-        renderer.setClearColor(0x000000, 0);
-        renderer.autoClear = false;
-        // 毎フレーム手動でクリア
-        var originalRender = renderer.render.bind(renderer);
-        var scene = this.object3D;
-        var camera = this.camera;
-        renderer.render = function () {
-          renderer.clearDepth();
-          originalRender(scene, camera);
-        };
+        this.renderer.setClearColor(0x000000, 0);
       });
     </script>
 
