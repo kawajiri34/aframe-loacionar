@@ -33,15 +33,31 @@
     <a-scene
       vr-mode-ui="enabled: false"
       arjs="sourceType: webcam; debugUIEnabled: false;"
-      background="color: transparent"
       renderer="antialias: true; alpha: true; colorManagement: true"
       fog="type: none"
       embedded
     >
-      <a-entity light="type: ambient; color: #FFF; intensity: 1"></a-entity>
-      <a-entity light="type: directional; color: #FFF; intensity: 0.5" position="0 1 1"></a-entity>
+      <a-entity light="type: ambient; color: #FFF; intensity: 1.5"></a-entity>
+      <a-entity light="type: directional; color: #FFF; intensity: 0.6" position="0 1 1"></a-entity>
       <a-camera gps-projected-camera rotation-reader></a-camera>
     </a-scene>
+
+    <script>
+      // シーン初期化後にレンダラーの背景を完全透明にする
+      document.querySelector('a-scene').addEventListener('loaded', function () {
+        var renderer = this.renderer;
+        renderer.setClearColor(0x000000, 0);
+        renderer.autoClear = false;
+        // 毎フレーム手動でクリア
+        var originalRender = renderer.render.bind(renderer);
+        var scene = this.object3D;
+        var camera = this.camera;
+        renderer.render = function () {
+          renderer.clearDepth();
+          originalRender(scene, camera);
+        };
+      });
+    </script>
 
     <script type="module" src="js/app.js"></script>
   </body>
