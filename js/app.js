@@ -1,12 +1,15 @@
-import { generateGrid, distanceKm } from './grid.js';
+import { generateGrid, distanceKm, calculateBearing } from './grid.js';
 
-const DEST_VISIBILITY_KM = 0.5; // 目的地モデルは500m以内で表示
-const REGRID_THRESHOLD_KM = 0.05; // 50m移動でグリッド再生成
+const DEST_VISIBILITY_KM = 0.5;
+const REGRID_THRESHOLD_KM = 0.05;
+const HEADING_CALC_MIN_DIST_KM = 0.005; // 5m以上移動したら方位計算
 
 const scene = document.querySelector('a-scene');
 const overlay = document.getElementById('overlay');
 const spotSelect = document.getElementById('spot-select');
 const loading = document.getElementById('loading');
+const calibration = document.getElementById('calibration');
+const calibrationDone = document.getElementById('calibration-done');
 const spotNameEl = document.getElementById('spot-name');
 const distanceEl = document.getElementById('distance');
 
@@ -17,6 +20,11 @@ let destEntity = null;
 let lastGridLat = null;
 let lastGridLng = null;
 
+// GPS移動軌跡による方位補正
+let prevLat = null;
+let prevLng = null;
+let headingOffsetDeg = 0;
+
 /**
  * spots.json を読み込む
  */
@@ -26,10 +34,22 @@ async function loadSpots() {
 }
 
 /**
+ * キャリブレーション画面を表示
+ */
+function showCalibration(spots) {
+  loading.style.display = 'none';
+  calibration.style.display = 'flex';
+
+  calibrationDone.addEventListener('click', () => {
+    calibration.style.display = 'none';
+    showSpotSelect(spots);
+  });
+}
+
+/**
  * スポット選択UIを表示
  */
 function showSpotSelect(spots) {
-  loading.style.display = 'none';
   spotSelect.style.display = 'flex';
 
   const container = spotSelect.querySelector('.spot-list');
@@ -71,6 +91,54 @@ function startNavigation(spot) {
 }
 
 /**
+ * GPS移動軌跡からコンパスの方位オフセットを計算
+ * 実際のGPS移動方向とデバイスコンパスの差を補正値とする
+ */
+function updateHeadingOffset(lat, lng) {
+  if (prevLat === null) {
+    prevLat = lat;
+    prevLng = lng;
+    return;
+  }
+
+  const movedDist = distanceKm(prevLat, prevLng, lat, lng);
+  if (movedDist < HEADING_CALC_MIN_DIST_KM) return;
+
+  // GPS軌跡から実際の移動方向を算出
+  const gpsBearing = calculateBearing(prevLat, prevLng, lat, lng);
+
+  // デバイスのコンパスが示す方向を取得
+  const camera = document.querySelector('[gps-projected-camera]');
+  if (camera) {
+    const cameraRotation = camera.getAttribute('rotation');
+    // カメラのY回転（AR.jsが設定したコンパス方位）
+    const compassBearing = (-cameraRotation.y + 360) % 360;
+
+    // GPS方向とコンパス方向の差 = 補正値
+    let offset = gpsBearing - compassBearing;
+    // -180〜+180に正規化
+    if (offset > 180) offset -= 360;
+    if (offset < -180) offset += 360;
+
+    // 急激な変化を避けるため、移動平均で平滑化
+    headingOffsetDeg = headingOffsetDeg * 0.7 + offset * 0.3;
+  }
+
+  prevLat = lat;
+  prevLng = lng;
+}
+
+/**
+ * 方位補正をカメラに適用
+ */
+function applyHeadingOffset() {
+  const camera = document.querySelector('[gps-projected-camera]');
+  if (camera && Math.abs(headingOffsetDeg) > 1) {
+    camera.object3D.rotation.y += THREE.MathUtils.degToRad(headingOffsetDeg);
+  }
+}
+
+/**
  * 既存の矢印エンティティをすべて削除
  */
 function clearArrows() {
@@ -105,7 +173,7 @@ function placeArrows(userLat, userLng, spot) {
 }
 
 /**
- * GPS追跡: 距離表示 + グリッド再生成 + 目的地表示制御
+ * GPS追跡: 距離表示 + グリッド再生成 + 目的地表示制御 + 方位補正
  */
 function startTracking(spot) {
   if (!navigator.geolocation) return;
@@ -128,6 +196,9 @@ function startTracking(spot) {
         destEntity.setAttribute('visible', distToDest <= DEST_VISIBILITY_KM);
       }
 
+      // GPS移動軌跡から方位補正を計算
+      updateHeadingOffset(userLat, userLng);
+
       // 初回 or 50m以上移動したらグリッド再生成
       if (
         lastGridLat === null ||
@@ -142,13 +213,22 @@ function startTracking(spot) {
     },
     { enableHighAccuracy: true }
   );
+
+  // 毎フレーム方位補正を適用
+  scene.addEventListener('renderstart', () => {
+    const tick = () => {
+      applyHeadingOffset();
+      requestAnimationFrame(tick);
+    };
+    tick();
+  });
 }
 
 // 初期化
 async function init() {
   try {
     const spots = await loadSpots();
-    showSpotSelect(spots);
+    showCalibration(spots);
   } catch (err) {
     console.error('Failed to load spots:', err);
     loading.querySelector('p').textContent =

@@ -120,3 +120,59 @@ html, body {
     transform: rotate(360deg);
   }
 }
+
+/* キャリブレーション画面 */
+#calibration {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99998;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.calibration-content {
+  text-align: center;
+}
+
+.calibration-content p {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.calibration-desc {
+  font-size: 14px !important;
+  opacity: 0.7;
+}
+
+.calibration-icon {
+  font-size: 80px;
+  margin: 24px 0;
+  animation: sway 2s ease-in-out infinite;
+}
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-20deg); }
+  50% { transform: rotate(20deg); }
+}
+
+#calibration-done {
+  padding: 12px 32px;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#calibration-done:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
