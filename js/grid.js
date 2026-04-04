@@ -56,9 +56,26 @@ function distanceKm(lat1, lng1, lat2, lng2) {
  * @returns {Array<{lat: number, lng: number, bearing: number, distToDest: number}>}
  */
 function generateGrid(userLat, userLng, destLat, destLng) {
-  // -500m〜+500m を 100m刻み → 11点 × 11点 = 121点
   const points = [];
 
+  // 近距離: -50m〜+50m を 50m刻み → 3×3 = 9点（中心除く8点）
+  for (let dx = -50; dx <= 50; dx += 50) {
+    for (let dy = -50; dy <= 50; dy += 50) {
+      if (dx === 0 && dy === 0) continue; // ユーザー真上は除外
+      const dxKm = dx / 1000;
+      const dyKm = dy / 1000;
+
+      const lat = userLat + dyKm / KM_PER_DEG_LAT;
+      const lng = userLng + dxKm / kmPerDegLng(userLat);
+
+      const bearing = calculateBearing(lat, lng, destLat, destLng);
+      const distToDest = distanceKm(lat, lng, destLat, destLng);
+
+      points.push({ lat, lng, bearing, distToDest });
+    }
+  }
+
+  // 広域: -500m〜+500m を 100m刻み → 11×11 = 121点
   for (let dx = -500; dx <= 500; dx += 100) {
     for (let dy = -500; dy <= 500; dy += 100) {
       const dxKm = dx / 1000;
